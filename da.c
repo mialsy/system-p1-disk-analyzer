@@ -101,7 +101,14 @@ int main(int argc, char *argv[])
      */
 
     struct elist *list = elist_create(0, sizeof(int));
+   
+    for (int i = 0; i < 1000; i++) {
+        elist_add(list, &i);
+    }
+
+    int *x = elist_get(list, 2);
+    printf("we got an interger back %d\n", *x);
     elist_destroy(list);
-    
+
     return 0;
 }

@@ -78,7 +78,14 @@ size_t elist_capacity(struct elist *list)
 ssize_t elist_add(struct elist *list, void *item)
 {   
     if (list->size >= list->capacity) {
-        // TODO: resize
+        list->capacity *= RESIZE_MULTIPLIER;
+        LOG("Resizing the list, new capacity %zu\n", list->capacity);
+        // for realloc set to its previous reference
+        list->element_storage = realloc(list->element_storage, list->item_sz * list->capacity);
+        if (list->element_storage == NULL) {
+            perror("cannot resize");
+            return -1;
+        }
     }
     size_t index = list->size++;
     void *item_ptr = list->element_storage + index * list->item_sz;
@@ -99,7 +106,11 @@ int elist_set(struct elist *list, size_t idx, void *item)
 
 void *elist_get(struct elist *list, size_t idx)
 {
-    return NULL;
+    if (idx >= list->size) {
+        return NULL;
+    }
+    void *item_ptr = list->element_storage + idx * list->item_sz;
+    return item_ptr;
 }
 
 size_t elist_size(struct elist *list)
