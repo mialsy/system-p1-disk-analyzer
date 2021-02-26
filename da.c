@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "elist.h"
 #include "logger.h"
 
 /* Forward declarations: */
@@ -11,17 +12,17 @@ void print_usage(char *argv[]);
 
 
 void print_usage(char *argv[]) {
-fprintf(stderr, "Disk Analyzer (da): analyzes disk space usage\n");
-fprintf(stderr, "Usage: %s [-ahs] [-l limit] [directory]\n\n", argv[0]);
+    fprintf(stderr, "Disk Analyzer (da): analyzes disk space usage\n");
+    fprintf(stderr, "Usage: %s [-ahs] [-l limit] [directory]\n\n", argv[0]);
 
-fprintf(stderr, "If no directory is specified, the current working directory is used.\n\n");
+    fprintf(stderr, "If no directory is specified, the current working directory is used.\n\n");
 
-fprintf(stderr, "Options:\n"
-"    * -a              Sort the files by time of last access (descending)\n"
-"    * -h              Display help/usage information\n"
-"    * -l limit        Limit the output to top N files (default=unlimited)\n"
-"    * -s              Sort the files by size (default, ascending)\n\n"
-);
+    fprintf(stderr, "Options:\n"
+    "    * -a              Sort the files by time of last access (descending)\n"
+    "    * -h              Display help/usage information\n"
+    "    * -l limit        Limit the output to top N files (default=unlimited)\n"
+    "    * -s              Sort the files by size (default, ascending)\n\n"
+    );
 }
 
 int main(int argc, char *argv[])
@@ -99,5 +100,8 @@ int main(int argc, char *argv[])
      *  - print formatted list
      */
 
+    struct elist *list = elist_create(0, sizeof(int));
+    elist_destroy(list);
+    
     return 0;
 }
