@@ -100,11 +100,14 @@ void *elist_add_new(struct elist *list)
     return NULL;
 }
 
-// TODO: set
 int elist_set(struct elist *list, size_t idx, void *item)
 {
-     
-    return -1;
+    void *item_ptr = elist_get(list, idx);
+    if (item_ptr == NULL) {
+        return -1;
+    }
+    memcpy(item_ptr, item, list->item_sz);
+    return 0;
 }
 
 void *elist_get(struct elist *list, size_t idx)
