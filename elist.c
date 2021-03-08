@@ -48,7 +48,7 @@ struct elist *elist_create(size_t list_sz, size_t item_sz)
 
     list->element_storage = malloc(storage_bytes);
 
-    // change if there is enough space for elemnt_storage
+    // check if there is enough space for elemnt_storage
     if (list->element_storage == NULL) {
         perror("malloc");
         free(list);
@@ -64,9 +64,9 @@ void elist_destroy(struct elist *list)
     free(list);
 }
 
+// TODO: set capacity
 int elist_set_capacity(struct elist *list, size_t capacity)
 {
-
     return -1;
 }
 
@@ -94,11 +94,13 @@ ssize_t elist_add(struct elist *list, void *item)
     return index;
 }
 
+// TODO: add new
 void *elist_add_new(struct elist *list)
 {
     return NULL;
 }
 
+// TODO: set
 int elist_set(struct elist *list, size_t idx, void *item)
 {
     return -1;
@@ -118,31 +120,37 @@ size_t elist_size(struct elist *list)
     return list->size;
 }
 
+// TODO: remove
 int elist_remove(struct elist *list, size_t idx)
 {
     return -1;
 }
 
+// TODO: clear
 void elist_clear(struct elist *list)
 {
 
 }
 
+// TODO: clear mem
 void elist_clear_mem(struct elist *list)
 {
 
 }
 
+// TODO: find index 
 ssize_t elist_index_of(struct elist *list, void *item)
 {
     return -1;
 }
 
+// TODO: sort list
 void elist_sort(struct elist *list, int (*comparator)(const void *, const void *))
 {
 
 }
 
+// TODO: check index to see if it is valid
 bool idx_is_valid(struct elist *list, size_t idx)
 {
     return false;

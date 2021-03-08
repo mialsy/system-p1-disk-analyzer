@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../labs/L3-mialsy"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"stdlib.h": "c",
+			"string.h": "c"
+		}
+	}
+}
