@@ -103,6 +103,7 @@ void *elist_add_new(struct elist *list)
 // TODO: set
 int elist_set(struct elist *list, size_t idx, void *item)
 {
+     
     return -1;
 }
 
@@ -126,16 +127,16 @@ int elist_remove(struct elist *list, size_t idx)
     return -1;
 }
 
-// TODO: clear
 void elist_clear(struct elist *list)
 {
-
+    list->size = 0;
 }
 
 // TODO: clear mem
 void elist_clear_mem(struct elist *list)
 {
-
+    for (int i = 0; i < list->size; i++) {
+    }
 }
 
 // TODO: find index 
@@ -150,9 +151,8 @@ void elist_sort(struct elist *list, int (*comparator)(const void *, const void *
 
 }
 
-// TODO: check index to see if it is valid
 bool idx_is_valid(struct elist *list, size_t idx)
 {
-    return false;
+    return idx >= 0 && idx < list->size;
 }
 
