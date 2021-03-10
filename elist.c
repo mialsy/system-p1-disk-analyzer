@@ -67,7 +67,29 @@ void elist_destroy(struct elist *list)
 // TODO: set capacity
 int elist_set_capacity(struct elist *list, size_t capacity)
 {
-    return -1;
+    // handle size == 0
+    if (capacity == 0) {
+        free(list->element_storage);
+        list->capacity = 0;
+        list->size = 0;
+        return 0; 
+    }
+
+    list->capacity = capacity;
+    // handle capacity shrink
+    if (list->capacity < list->size) {
+        list->size = list->capacity;
+    }
+    LOG("Resizing the list, new capacity %zu\n", list->capacity);
+    void *newStorage = realloc(list->element_storage, list->item_sz * list->capacity);
+    if (newStorage == NULL) {
+        // free new storage on realloc failed
+        perror("cannot resize");
+        free(newStorage);
+        return -1;
+    }
+    list->element_storage = newStorage;
+    return 0;
 }
 
 size_t elist_capacity(struct elist *list)
@@ -77,7 +99,28 @@ size_t elist_capacity(struct elist *list)
 
 ssize_t elist_add(struct elist *list, void *item)
 {   
+    // handle capacity  == 0
+    if (list->capacity == 0) {
+        list->capacity = DEFAULT_INIT_SZ;
+        size_t storage_bytes = list->capacity * list->item_sz;
+
+        LOG("Inittializing new elist: capacity=[%zu], item_size=[%zu], byte=[%zu]\n",
+            list->capacity,
+            list->item_sz,
+            storage_bytes);
+
+        list->element_storage = malloc(storage_bytes);
+
+        // check if there is enough space for elemnt_storage
+        if (list->element_storage == NULL) {
+            perror("malloc");
+            free(list);
+            return -1;
+        }
+    }
+
     if (list->size >= list->capacity) {
+
         list->capacity *= RESIZE_MULTIPLIER;
         LOG("Resizing the list, new capacity %zu\n", list->capacity);
         // for realloc set to its previous reference
@@ -98,13 +141,35 @@ ssize_t elist_add(struct elist *list, void *item)
 
 void *elist_add_new(struct elist *list)
 {
-        if (list->size >= list->capacity) {
+    // handle capacity  == 0
+    if (list->capacity == 0) {
+        list->capacity = DEFAULT_INIT_SZ;
+        size_t storage_bytes = list->capacity * list->item_sz;
+
+        LOG("Inittializing new elist: capacity=[%zu], item_size=[%zu], byte=[%zu]\n",
+            list->capacity,
+            list->item_sz,
+            storage_bytes);
+
+        list->element_storage = malloc(storage_bytes);
+
+        // check if there is enough space for elemnt_storage
+        if (list->element_storage == NULL) {
+            perror("malloc");
+            free(list);
+            return NULL;
+        }
+    }
+    
+    if (list->size >= list->capacity) {
+
         list->capacity *= RESIZE_MULTIPLIER;
         LOG("Resizing the list, new capacity %zu\n", list->capacity);
         // for realloc set to its previous reference
         void *newStorage = realloc(list->element_storage, list->item_sz * list->capacity);
         if (newStorage == NULL) {
             perror("cannot resize");
+            // free new storage on failed realloc
             free(newStorage);
             return NULL;
         }
