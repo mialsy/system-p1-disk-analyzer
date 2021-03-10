@@ -81,11 +81,13 @@ ssize_t elist_add(struct elist *list, void *item)
         list->capacity *= RESIZE_MULTIPLIER;
         LOG("Resizing the list, new capacity %zu\n", list->capacity);
         // for realloc set to its previous reference
-        list->element_storage = realloc(list->element_storage, list->item_sz * list->capacity);
-        if (list->element_storage == NULL) {
+        void *newStorage = realloc(list->element_storage, list->item_sz * list->capacity);
+        if (newStorage == NULL) {
             perror("cannot resize");
+            free(newStorage);
             return -1;
         }
+        list->element_storage = newStorage;
     }
     size_t index = list->size++;
     void *item_ptr = list->element_storage + index * list->item_sz;
@@ -100,11 +102,13 @@ void *elist_add_new(struct elist *list)
         list->capacity *= RESIZE_MULTIPLIER;
         LOG("Resizing the list, new capacity %zu\n", list->capacity);
         // for realloc set to its previous reference
-        list->element_storage = realloc(list->element_storage, list->item_sz * list->capacity);
-        if (list->element_storage == NULL) {
+        void *newStorage = realloc(list->element_storage, list->item_sz * list->capacity);
+        if (newStorage == NULL) {
             perror("cannot resize");
+            free(newStorage);
             return NULL;
         }
+        list->element_storage = newStorage;
     }
     size_t index = list->size++;
     void *item_ptr = list->element_storage + index * list->item_sz;
@@ -142,10 +146,12 @@ int elist_remove(struct elist *list, size_t idx)
     if (!idx_is_valid(list, idx)) {
         return -1;
     }
+    
     while (idx_is_valid(list, idx + 1)) {
         elist_set(list, idx, elist_get(list, idx + 1));
         idx++;
     }
+    list->size--;
     return 0;
 }
 
