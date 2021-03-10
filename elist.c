@@ -154,10 +154,10 @@ void elist_clear(struct elist *list)
     list->size = 0;
 }
 
-// TODO: clear mem
 void elist_clear_mem(struct elist *list)
 {
-    
+    memset(list->element_storage, 0, list->size * list->item_sz);
+    list->size = 0;
 }
 
 ssize_t elist_index_of(struct elist *list, void *item)
@@ -173,7 +173,6 @@ ssize_t elist_index_of(struct elist *list, void *item)
 // TODO: sort list
 void elist_sort(struct elist *list, int (*comparator)(const void *, const void *))
 {
-
 }
 
 bool idx_is_valid(struct elist *list, size_t idx)
