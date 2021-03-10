@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -7,8 +8,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <limits.h>       
+#include <time.h>
 
 #include "elist.h"
 #include "logger.h"
@@ -38,20 +38,33 @@ struct dir_element
     struct timespec time;
 };
 
-int traverse(struct elist *list, DIR *currentDir, char *parentpath) 
+int traverse(struct elist *list, DIR *currentDir, char *parentpath, bool isRoot) 
 {
     struct dirent * ptr;
     struct stat buf;
     char fullpath[PATH_MAX + 1];
-    struct dir_element childDir;
-
+    
     while((ptr = readdir(currentDir)) != NULL)
     {
+        struct dir_element *childDir = malloc(sizeof(struct dir_element));
+        LOG("size of childDir is %d\n", sizeof(childDir));
+        if (childDir == NULL) {
+            perror("cannot malloc child directory struct");
+            return -1;
+        }
+
         LOG("Checking dir: %s\n", ptr->d_name);
-        strcpy(fullpath, parentpath);
-        strcat(fullpath, "/");
-        strcat(fullpath, ptr->d_name);
-        LOG("file path is %s \n", fullpath);
+        if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
+            strcpy(fullpath, parentpath);
+            strcat(fullpath, "/");
+            strcat(fullpath, ptr->d_name);
+        } else if (isRoot) {
+            strcpy(fullpath, ptr->d_name);
+        } else {
+            // already checked the current directory and parent directory if is not root
+            continue;
+        }
+        
         if(fullpath == NULL) {
                perror("fullpath");
                return -1;
@@ -61,25 +74,28 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath)
                break;
                return -1;
         }
-        
-        LOG("file size is %d bytes\n", buf.st_size);
+
+        strcpy(childDir->fullpath, fullpath);
+        childDir->size = buf.st_size;
+        memcpy(&childDir->time, &buf.st_atime, sizeof(struct timespec));
+
+        LOG("file path is %s \n", childDir->fullpath);
+        LOG("file size is %d bytes\n", childDir->size);
         LOG("file mode is %i \n", S_ISDIR(buf.st_mode));
-        strcpy(childDir.fullpath, fullpath);
-        childDir.size = buf.st_size;
-        memcpy(&childDir.time, &buf.st_atime, sizeof(struct timespec));
 
         if (S_ISDIR(buf.st_mode) && strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
             DIR *dir = opendir(fullpath);
             if (dir == NULL) {
                 fprintf(stderr, "Unable to open directory: [%s]\n", fullpath);
             }
-            int res = traverse(list, dir, fullpath);
+            int res = traverse(list, dir, fullpath, false);
             if (res == -1) {
                 perror("child traversal error");
                 return -1;
             }
         }
-        elist_add(list, &childDir);
+        elist_add(list, childDir);
+        free(childDir);
     }
     closedir(currentDir);
     return 0;
@@ -162,7 +178,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Unable to open directory: [%s]\n", options.directory);
     }
 
-    struct elist *dirList = elist_create(0, sizeof(struct dir_element*));
+    struct elist *dirList = elist_create(0, sizeof(struct dir_element));
     if (dirList != NULL) {
         LOGP("Created an elist to hold dirs. \n");
     } else {
@@ -170,13 +186,27 @@ int main(int argc, char *argv[])
     }
     
     // TODO: traverse the directory and store entries in the list
-    traverse(dirList, dir, fullpath);
+    traverse(dirList, dir, fullpath, true);
+
+    LOGP("checking the list \n");
+    LOG("List size is: %d\n", elist_size(dirList));
+    for (int idx = 0; idx < elist_size(dirList); idx++) {
+        struct dir_element *elem = elist_get(dirList, idx);
+        LOG("%s\n", elem->fullpath);
+        LOG("%s\n", ctime(&elem->time));
+        LOG("%d\n", elem->size);
+    }
+
 
     // TODO: sort the list (either by size or time)
 
 
     // TODO: print formatted list
 
+
+
+
+    elist_destroy(dirList);
 
     return 0;
 }
