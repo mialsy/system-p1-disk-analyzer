@@ -102,12 +102,22 @@ int main(int argc, char *argv[])
 
     struct elist *list = elist_create(0, sizeof(int));
    
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
         elist_add(list, &i);
     }
 
     int *x = elist_get(list, 2);
     printf("we got an interger back %d\n", *x);
+    int num = 2;
+    int *ptr = &num;
+    if (*ptr == *x) {
+        printf("same\n");
+    }
+
+    int idx = elist_index_of(list, ptr);
+
+    printf("we got an index is %d\n", idx);
+
     elist_destroy(list);
 
     return 0;

@@ -94,10 +94,22 @@ ssize_t elist_add(struct elist *list, void *item)
     return index;
 }
 
-// TODO: add new
 void *elist_add_new(struct elist *list)
 {
-    return NULL;
+        if (list->size >= list->capacity) {
+        list->capacity *= RESIZE_MULTIPLIER;
+        LOG("Resizing the list, new capacity %zu\n", list->capacity);
+        // for realloc set to its previous reference
+        list->element_storage = realloc(list->element_storage, list->item_sz * list->capacity);
+        if (list->element_storage == NULL) {
+            perror("cannot resize");
+            return NULL;
+        }
+    }
+    size_t index = list->size++;
+    void *item_ptr = list->element_storage + index * list->item_sz;
+    
+    return item_ptr;
 }
 
 int elist_set(struct elist *list, size_t idx, void *item)
@@ -112,7 +124,7 @@ int elist_set(struct elist *list, size_t idx, void *item)
 
 void *elist_get(struct elist *list, size_t idx)
 {
-    if (idx >= list->size) {
+    if (!idx_is_valid(list, idx)) {
         return NULL;
     }
     void *item_ptr = list->element_storage + idx * list->item_sz;
@@ -124,10 +136,17 @@ size_t elist_size(struct elist *list)
     return list->size;
 }
 
-// TODO: remove
 int elist_remove(struct elist *list, size_t idx)
 {
-    return -1;
+    // check edge case
+    if (!idx_is_valid(list, idx)) {
+        return -1;
+    }
+    while (idx_is_valid(list, idx + 1)) {
+        elist_set(list, idx, elist_get(list, idx + 1));
+        idx++;
+    }
+    return 0;
 }
 
 void elist_clear(struct elist *list)
@@ -138,13 +157,16 @@ void elist_clear(struct elist *list)
 // TODO: clear mem
 void elist_clear_mem(struct elist *list)
 {
-    for (int i = 0; i < list->size; i++) {
-    }
+    
 }
 
-// TODO: find index 
 ssize_t elist_index_of(struct elist *list, void *item)
 {
+    for (size_t idx = 0; idx < list->size; idx++) {
+        if (elist_get(list, idx) != NULL && memcmp(item, elist_get(list, idx), list->item_sz) == 0) {
+            return idx;
+        } 
+    }
     return -1;
 }
 
