@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <dirent.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +19,25 @@ struct elist {
 };
 
 bool idx_is_valid(struct elist *list, size_t idx);
+
+/**
+ * Helper function that initialze the element_storage to given bytes
+ *
+ * @param list The list to create element_storage
+ * @param storage_bytes the size to be malloc to the element_storage
+ * @return zero on success, nonzero on failure
+ */
+ssize_t elist_init_storage(struct elist *list, size_t storage_bytes) {
+    list->element_storage = malloc(storage_bytes);
+
+    // check if there is enough space for elemnt_storage
+    if (list->element_storage == NULL) {
+        perror("malloc");
+        free(list);
+        return -1;
+    }
+    return 0;
+}
 
 struct elist *elist_create(size_t list_sz, size_t item_sz)
 {
@@ -46,12 +66,9 @@ struct elist *elist_create(size_t list_sz, size_t item_sz)
         list->item_sz,
         storage_bytes);
 
-    list->element_storage = malloc(storage_bytes);
+    ssize_t init_res = elist_init_storage(list, storage_bytes);
 
-    // check if there is enough space for elemnt_storage
-    if (list->element_storage == NULL) {
-        perror("malloc");
-        free(list);
+    if (init_res == -1) {
         return NULL;
     }
 
@@ -64,7 +81,6 @@ void elist_destroy(struct elist *list)
     free(list);
 }
 
-// TODO: set capacity
 int elist_set_capacity(struct elist *list, size_t capacity)
 {
     // handle size == 0
@@ -103,18 +119,9 @@ ssize_t elist_add(struct elist *list, void *item)
     if (list->capacity == 0) {
         list->capacity = DEFAULT_INIT_SZ;
         size_t storage_bytes = list->capacity * list->item_sz;
+        ssize_t init_res = elist_init_storage(list, storage_bytes);
 
-        LOG("Inittializing new elist: capacity=[%zu], item_size=[%zu], byte=[%zu]\n",
-            list->capacity,
-            list->item_sz,
-            storage_bytes);
-
-        list->element_storage = malloc(storage_bytes);
-
-        // check if there is enough space for elemnt_storage
-        if (list->element_storage == NULL) {
-            perror("malloc");
-            free(list);
+        if (init_res == -1) {
             return -1;
         }
     }
@@ -145,18 +152,9 @@ void *elist_add_new(struct elist *list)
     if (list->capacity == 0) {
         list->capacity = DEFAULT_INIT_SZ;
         size_t storage_bytes = list->capacity * list->item_sz;
+        ssize_t init_res = elist_init_storage(list, storage_bytes);
 
-        LOG("Inittializing new elist: capacity=[%zu], item_size=[%zu], byte=[%zu]\n",
-            list->capacity,
-            list->item_sz,
-            storage_bytes);
-
-        list->element_storage = malloc(storage_bytes);
-
-        // check if there is enough space for elemnt_storage
-        if (list->element_storage == NULL) {
-            perror("malloc");
-            free(list);
+        if (init_res == -1) {
             return NULL;
         }
     }
@@ -241,13 +239,15 @@ ssize_t elist_index_of(struct elist *list, void *item)
     return -1;
 }
 
-// TODO: sort list
 void elist_sort(struct elist *list, int (*comparator)(const void *, const void *))
 {
+    qsort(list->element_storage, list->size, list->item_sz, comparator);
 }
 
 bool idx_is_valid(struct elist *list, size_t idx)
 {
     return idx >= 0 && idx < list->size;
 }
+
+
 

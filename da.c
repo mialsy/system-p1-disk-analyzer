@@ -92,33 +92,16 @@ int main(int argc, char *argv[])
             options.limit);
     LOG("Directory to analyze: [%s]\n", options.directory);
 
-    /* TODO:
+    /* TODO: 
      *  - check to ensure the directory actually exists
      *  - create a new 'elist' data structure
      *  - traverse the directory and store entries in the list
      *  - sort the list (either by size or time)
      *  - print formatted list
      */
+    
 
-    struct elist *list = elist_create(0, sizeof(int));
-   
-    for (int i = 0; i < 100; i++) {
-        elist_add(list, &i);
-    }
 
-    int *x = elist_get(list, 2);
-    printf("we got an interger back %d\n", *x);
-    int num = 2;
-    int *ptr = &num;
-    if (*ptr == *x) {
-        printf("same\n");
-    }
-
-    int idx = elist_index_of(list, ptr);
-
-    printf("we got an index is %d\n", idx);
-
-    elist_destroy(list);
 
     return 0;
 }
