@@ -1,8 +1,14 @@
 #include <ctype.h>
+#include <dirent.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <limits.h>       
 
 #include "elist.h"
 #include "logger.h"
@@ -24,6 +30,61 @@ void print_usage(char *argv[]) {
     "    * -s              Sort the files by size (default, ascending)\n\n"
     );
 }
+
+struct dir_element
+{
+    char fullpath[PATH_MAX + 1];
+    off_t size;
+    struct timespec time;
+};
+
+int traverse(struct elist *list, DIR *currentDir, char *parentpath) 
+{
+    struct dirent * ptr;
+    struct stat buf;
+    char fullpath[PATH_MAX + 1];
+    struct dir_element childDir;
+
+    while((ptr = readdir(currentDir)) != NULL)
+    {
+        LOG("Checking dir: %s\n", ptr->d_name);
+        strcpy(fullpath, parentpath);
+        strcat(fullpath, "/");
+        strcat(fullpath, ptr->d_name);
+        LOG("file path is %s \n", fullpath);
+        if(fullpath == NULL) {
+               perror("fullpath");
+               return -1;
+        }
+        if (stat(fullpath, &buf) == -1) {
+               perror("stat");
+               break;
+               return -1;
+        }
+        
+        LOG("file size is %d bytes\n", buf.st_size);
+        LOG("file mode is %i \n", S_ISDIR(buf.st_mode));
+        strcpy(childDir.fullpath, fullpath);
+        childDir.size = buf.st_size;
+        memcpy(&childDir.time, &buf.st_atime, sizeof(struct timespec));
+
+        if (S_ISDIR(buf.st_mode) && strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
+            DIR *dir = opendir(fullpath);
+            if (dir == NULL) {
+                fprintf(stderr, "Unable to open directory: [%s]\n", fullpath);
+            }
+            int res = traverse(list, dir, fullpath);
+            if (res == -1) {
+                perror("child traversal error");
+                return -1;
+            }
+        }
+        elist_add(list, &childDir);
+    }
+    closedir(currentDir);
+    return 0;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -91,16 +152,30 @@ int main(int argc, char *argv[])
             options.sort_by_time == true ? "time" : "size",
             options.limit);
     LOG("Directory to analyze: [%s]\n", options.directory);
+    char fullpath[PATH_MAX];
+    realpath(options.directory, fullpath);
+    LOG("Fullpath of dir: [%s]\n", fullpath);
 
-    /* TODO: 
-     *  - check to ensure the directory actually exists
-     *  - create a new 'elist' data structure
-     *  - traverse the directory and store entries in the list
-     *  - sort the list (either by size or time)
-     *  - print formatted list
-     */
+
+    DIR *dir = opendir(options.directory);
+    if (dir == NULL) {
+        fprintf(stderr, "Unable to open directory: [%s]\n", options.directory);
+    }
+
+    struct elist *dirList = elist_create(0, sizeof(struct dir_element*));
+    if (dirList != NULL) {
+        LOGP("Created an elist to hold dirs. \n");
+    } else {
+        fprintf(stderr, "Unable to create the list.\n");
+    }
     
+    // TODO: traverse the directory and store entries in the list
+    traverse(dirList, dir, fullpath);
 
+    // TODO: sort the list (either by size or time)
+
+
+    // TODO: print formatted list
 
 
     return 0;
