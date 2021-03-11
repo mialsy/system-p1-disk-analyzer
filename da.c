@@ -18,11 +18,10 @@
 
 #define TIME_COLS 15
 #define SIZE_COLS 14
-#define TRIAL_SPACE_COLS 13
+#define DEFAULT_PATH_SZ 300
 
 /* Forward declarations: */
 void print_usage(char *argv[]);
-
 
 void print_usage(char *argv[]) {
     fprintf(stderr, "Disk Analyzer (da): analyzes disk space usage\n");
@@ -38,14 +37,13 @@ void print_usage(char *argv[]) {
     );
 }
 
-
 /** @struct dir_element
  *  @brief This structure is used to store the temperary information of file and dirctory for traverse and print out the file and directoy  
  */
 struct dir_element
 {
-    char path[PATH_MAX + 1];        /*!< Relative path to display to users */
-    char fullpath[PATH_MAX + 1];    /*!< Full path used to open direcotry and access stats */
+    char path[DEFAULT_PATH_SZ];        /*!< Relative path to display to users */
+    char fullpath[DEFAULT_PATH_SZ];    /*!< Full path used to open direcotry and access stats */
     off_t size;                     /*!< Size of the file or direcotry in bytes */
     time_t time;                    /*!< Last access time of file or directory in msec */
 };
@@ -69,7 +67,6 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
     while((ptr = readdir(currentDir)) != NULL)
     {
 
-        // LOG("Checking dir: %s\n", ptr->d_name);
         if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
             strcpy(path, parentpath);
             strcat(path, "/");
@@ -312,9 +309,8 @@ int main(int argc, char *argv[])
     } 
 
     unsigned short totalCols = calColumn();
-    // -2 for holding \n and \0
+    // calculate nameCols
     unsigned short nameCols = totalCols - TIME_COLS - SIZE_COLS;
-    LOG("total col: %d\n", totalCols);
 
     for (int idx = 0; idx < max; idx++) {
         struct dir_element *elem = elist_get(dirList, idx);
