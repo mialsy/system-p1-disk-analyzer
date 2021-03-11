@@ -51,7 +51,7 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
     
     while((ptr = readdir(currentDir)) != NULL)
     {
-        struct dir_element *childDir = malloc(sizeof(struct dir_element *));
+        struct dir_element *childDir = malloc(sizeof(struct dir_element));
         if (childDir == NULL) {
             perror("cannot malloc child directory struct");
             return -1;
