@@ -82,12 +82,11 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
         
         if(path == NULL || fullpath == NULL) {
                perror("path");
-               return -1;
+               continue;
         }
         if (stat(fullpath, &buf) == -1) {
                perror("stat");
-               break;
-               return -1;
+               continue;
         }
 
         struct dir_element childDir = {"","", buf.st_size, buf.st_atim.tv_sec};
@@ -99,20 +98,15 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
             DIR *dir = opendir(fullpath);
             if (dir == NULL) {
                 fprintf(stderr, "Unable to open directory: [%s]\n", fullpath);
-                return -1;
-            }
-            int res = traverse(list, dir, path, fullpath);
-            closedir(dir);
-            
-            if (res == -1) {
-                perror("child traversal error");
                 continue;
             }
+            traverse(list, dir, path, fullpath);
+            closedir(dir);
         } else {
             elist_add(list, &childDir);
         }
     }
-    return 0;
+    return elist_size(list) == 0 ? -1 : 0;
 }
 
 /**
@@ -278,7 +272,7 @@ int main(int argc, char *argv[])
     }
     
     char display_path[PATH_MAX];
-    if (options.directory[0] != '.') {
+    if (options.directory[0] != '.' && options.directory[0] != '/') {
         strcpy(display_path, "./");
         strcat(display_path, options.directory);
     } else {
