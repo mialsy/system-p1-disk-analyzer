@@ -6,9 +6,22 @@
 
 ## About the project
 
-### What is a elasic array and why do we use it?
+*Grouwn-ups like numbers.* as said by Antoine De Saint-Exupery. Unfortunately as resonsible adult we have to accept that the fact number matters a lot especially when you are running out of disk space. And this is where the disk analyizer util ```da``` comes into the play. 
 
 ### What is da? 
+
+```da``` is the short of disk analyzer. It would take directory as input argument and print out the infomation of files in the directory.
+
+This main purpose of command line util ```da``` built in this project is to analyze the disk usage for each file under given directory and to track of last access time for each file. With the sorting by time or size features, you would be able to have detailed idea about how the disk is consumed, and then make a decision on what needs to go and what stays.
+
+The work flow of ```da``` is shown as below:
+
+For input options of the da, please refer to the section [**Program options**](https://github.com/usf-cs521-sp21/P1-mialsy/tree/main#program-options).
+
+For example of the da domentrastion, please refer to the section [**Program output**](https://github.com/usf-cs521-sp21/P1-mialsy/tree/main#program-output).
+
+### What is a elasic array and why do we use it?
+
 
 ## Program options
 
@@ -67,6 +80,8 @@ If the path is not passed in, a defaullt . (current directory) would be used for
 
 ## Program output
 
+Here is an example out put of running da on the etc/systemd directory. 
+
 ```console
 [miasly@dirtmouth P1-mialsy]$ ./da /etc/systemd
 da.c:251:main(): Done parsing arguments.
@@ -104,7 +119,6 @@ da.c:157:calColumn(): Display columns: 89
        /etc/systemd/user/sockets.target.wants/dirmngr.socket       204.0 B    Feb 18 2021
 /etc/systemd/user/sockets.target.wants/p11-kit-server.socket       147.0 B    Feb 18 2021
 ```
-
 
 ## Testing
 
