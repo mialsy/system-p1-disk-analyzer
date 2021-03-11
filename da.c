@@ -251,9 +251,19 @@ int main(int argc, char *argv[])
     } else {
         strcpy(display_path, options.directory);
     }
+    // add the first one
+    struct stat buf;
+    if (stat(options.directory, &buf) == -1) {
+        perror("stat");
+    }
+
     // traverse
-    ssize_t traverseRes = traverse(dirList, dir, display_path, fullpath);
+    off_t traverseRes = traverse(dirList, dir, display_path, fullpath);
+    struct dir_element current_dir = {"","", traverseRes, buf.st_atim.tv_sec};
+    strcpy(current_dir.path, options.directory);
     closedir(dir);
+
+    elist_add(dirList, &current_dir);
 
     if (traverseRes == 0) {
         perror("traversal failed");

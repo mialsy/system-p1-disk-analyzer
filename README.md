@@ -178,21 +178,22 @@ da.c:241:main(): Created an elist to hold dirs.
 Unable to open directory: [/etc/pacman.d/gnupg/private-keys-v1.d]
 elist.c:130:elist_add(): Resizing the list, new capacity 20
 Unable to open directory: [/etc/pacman.d/gnupg/openpgp-revocs.d]
-da.c:270:main(): checking the list 
-da.c:271:main(): List size is: 14
-da.c:159:calColumn(): Display columns: 87
-                                       /etc/pacman.d/gnupg       2.0 MiB    Mar 10 2021
-                           /etc/pacman.d/gnupg/pubring.gpg    1001.9 KiB    Mar 10 2021
-                          /etc/pacman.d/gnupg/pubring.gpg~    1001.9 KiB    Feb 01 2021
-                               /etc/pacman.d/gnupg/tofu.db      48.0 KiB    Feb 01 2021
-                           /etc/pacman.d/gnupg/trustdb.gpg      15.2 KiB    Mar 10 2021
-                                  /etc/pacman.d/mirrorlist       4.6 KiB    Mar 10 2021
-                              /etc/pacman.d/gnupg/gpg.conf       141.0 B    Mar 10 2021
-                        /etc/pacman.d/gnupg/gpg-agent.conf        17.0 B    Feb 01 2021
-                           /etc/pacman.d/gnupg/secring.gpg         0.0 B    Feb 01 2021
-                     /etc/pacman.d/gnupg/S.gpg-agent.extra         0.0 B    Feb 01 2021
-                   /etc/pacman.d/gnupg/S.gpg-agent.browser         0.0 B    Feb 01 2021
-                           /etc/pacman.d/gnupg/S.gpg-agent         0.0 B    Feb 01 2021
-                       /etc/pacman.d/gnupg/S.gpg-agent.ssh         0.0 B    Feb 01 2021
-                     /etc/pacman.d/gnupg/.gpg-v21-migrated         0.0 B    Feb 01 2021
+da.c:280:main(): checking the list 
+da.c:281:main(): List size is: 15
+da.c:159:calColumn(): Display columns: 111
+                                                                     /etc/pacman.d       2.0 MiB    Mar 10 2021
+                                                               /etc/pacman.d/gnupg       2.0 MiB    Mar 10 2021
+                                                   /etc/pacman.d/gnupg/pubring.gpg    1001.9 KiB    Mar 10 2021
+                                                  /etc/pacman.d/gnupg/pubring.gpg~    1001.9 KiB    Feb 01 2021
+                                                       /etc/pacman.d/gnupg/tofu.db      48.0 KiB    Feb 01 2021
+                                                   /etc/pacman.d/gnupg/trustdb.gpg      15.2 KiB    Mar 10 2021
+                                                          /etc/pacman.d/mirrorlist       4.6 KiB    Mar 10 2021
+                                                      /etc/pacman.d/gnupg/gpg.conf       141.0 B    Mar 10 2021
+                                                /etc/pacman.d/gnupg/gpg-agent.conf        17.0 B    Feb 01 2021
+                                                   /etc/pacman.d/gnupg/secring.gpg         0.0 B    Feb 01 2021
+                                             /etc/pacman.d/gnupg/S.gpg-agent.extra         0.0 B    Feb 01 2021
+                                           /etc/pacman.d/gnupg/S.gpg-agent.browser         0.0 B    Feb 01 2021
+                                                   /etc/pacman.d/gnupg/S.gpg-agent         0.0 B    Feb 01 2021
+                                               /etc/pacman.d/gnupg/S.gpg-agent.ssh         0.0 B    Feb 01 2021
+                                             /etc/pacman.d/gnupg/.gpg-v21-migrated         0.0 B    Feb 01 2021
 ```
