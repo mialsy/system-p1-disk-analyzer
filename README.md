@@ -16,6 +16,7 @@ This main purpose of command line util ```da``` built in this project is to anal
 
 The work flow of ```da``` is shown as below:
 
+<img src="https://github.com/usf-cs521-sp21/P1-mialsy/blob/main/res/Presentation1.gif" alt="demo of the da workflow" width="900">
 
 For input options of the da, please refer to the section [**Program options**](https://github.com/usf-cs521-sp21/P1-mialsy/tree/main#program-options).
 
