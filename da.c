@@ -33,40 +33,43 @@ void print_usage(char *argv[]) {
 
 struct dir_element
 {
+    char path[PATH_MAX + 1];
     char fullpath[PATH_MAX + 1];
     off_t size;
-    struct timespec time;
+    time_t time;
 };
 
-int traverse(struct elist *list, DIR *currentDir, char *parentpath, bool isRoot) 
+int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parentpath_full) 
 {
     struct dirent * ptr;
     struct stat buf;
+    char path[PATH_MAX + 1];
     char fullpath[PATH_MAX + 1];
     
     while((ptr = readdir(currentDir)) != NULL)
     {
         struct dir_element *childDir = malloc(sizeof(struct dir_element));
-        LOG("size of childDir is %d\n", sizeof(childDir));
         if (childDir == NULL) {
             perror("cannot malloc child directory struct");
             return -1;
         }
 
-        LOG("Checking dir: %s\n", ptr->d_name);
+        // LOG("Checking dir: %s\n", ptr->d_name);
         if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
-            strcpy(fullpath, parentpath);
+            strcpy(path, parentpath);
+            strcat(path, "/");
+            strcat(path, ptr->d_name);
+
+            strcpy(fullpath, parentpath_full);
             strcat(fullpath, "/");
             strcat(fullpath, ptr->d_name);
-        } else if (isRoot) {
-            strcpy(fullpath, ptr->d_name);
         } else {
             // already checked the current directory and parent directory if is not root
             continue;
         }
         
-        if(fullpath == NULL) {
-               perror("fullpath");
+        if(path == NULL || fullpath == NULL) {
+               perror("path");
                return -1;
         }
         if (stat(fullpath, &buf) == -1) {
@@ -76,22 +79,26 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, bool isRoot)
         }
 
         strcpy(childDir->fullpath, fullpath);
+        strcpy(childDir->path, path);
         childDir->size = buf.st_size;
-        memcpy(&childDir->time, &buf.st_atime, sizeof(struct timespec));
+        childDir->time = buf.st_atim.tv_sec;
 
-        LOG("file path is %s \n", childDir->fullpath);
-        LOG("file size is %d bytes\n", childDir->size);
-        LOG("file mode is %i \n", S_ISDIR(buf.st_mode));
+        // log info
+        // LOG("file path is %s \n", childDir->fullpath);
+        // LOG("file size is %d bytes\n", childDir->size);
+        // LOG("file mode is %i \n", S_ISDIR(buf.st_mode));
+        // LOG("file time is %d\n", childDir->time);
 
         if (S_ISDIR(buf.st_mode) && strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
             DIR *dir = opendir(fullpath);
             if (dir == NULL) {
                 fprintf(stderr, "Unable to open directory: [%s]\n", fullpath);
+                return -1;
             }
-            int res = traverse(list, dir, fullpath, false);
+            int res = traverse(list, dir, path, fullpath);
             if (res == -1) {
                 perror("child traversal error");
-                return -1;
+                continue;
             }
         }
         elist_add(list, childDir);
@@ -99,6 +106,26 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, bool isRoot)
     }
     closedir(currentDir);
     return 0;
+}
+
+int compareTime(const void *o1, const void *o2) {
+    time_t t1 = ((struct dir_element *)o1)->time;
+    time_t t2 = ((struct dir_element *)o2)->time;
+    if (t1 == t2) {
+        return 0;
+    } else {
+        return t1 < t2 ? 1: -1;
+    }
+}
+
+int compareSize(const void *o1, const void *o2) {
+    off_t s1 = ((struct dir_element *)o1)->size;
+    off_t s2 = ((struct dir_element *)o2)->size;
+    if (s1 == s2) {
+        return 0;
+    } else {
+        return s1 < s2 ? -1 : 1;
+    }
 }
 
 
@@ -176,6 +203,7 @@ int main(int argc, char *argv[])
     DIR *dir = opendir(options.directory);
     if (dir == NULL) {
         fprintf(stderr, "Unable to open directory: [%s]\n", options.directory);
+        return -1;
     }
 
     struct elist *dirList = elist_create(0, sizeof(struct dir_element));
@@ -183,28 +211,39 @@ int main(int argc, char *argv[])
         LOGP("Created an elist to hold dirs. \n");
     } else {
         fprintf(stderr, "Unable to create the list.\n");
+        return -1;
     }
     
     // TODO: traverse the directory and store entries in the list
-    traverse(dirList, dir, fullpath, true);
+    ssize_t traverseRes = traverse(dirList, dir, &options.directory, fullpath);
 
+    if (traverseRes != 0) {
+        perror("traversal failed");
+        elist_destroy(dirList);
+        return -1;
+    }
+
+    if (options.sort_by_time) {
+        elist_sort(dirList, compareTime);
+    } else {
+        elist_sort(dirList, compareSize);
+    }
+
+    // TODO: print formatted list
     LOGP("checking the list \n");
     LOG("List size is: %d\n", elist_size(dirList));
     for (int idx = 0; idx < elist_size(dirList); idx++) {
         struct dir_element *elem = elist_get(dirList, idx);
+        char time_buff[16];
+        time_t rawtm = elem->time;
+        LOG("raw: %d\n", rawtm);
+
+        struct tm *ltime = localtime(&rawtm);
+        strftime(time_buff, 16, "    %b %d %Y", ltime);
         LOG("%s\n", elem->fullpath);
-        LOG("%s\n", ctime(&elem->time));
-        LOG("%d\n", elem->size);
+        LOG("last acc: %s\n", time_buff);
+        LOG("sz: %d\n", elem->size);
     }
-
-
-    // TODO: sort the list (either by size or time)
-
-
-    // TODO: print formatted list
-
-
-
 
     elist_destroy(dirList);
 
