@@ -6,8 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <termios.h>
 #include <time.h>
 
 #include "elist.h"
@@ -48,7 +51,7 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
     
     while((ptr = readdir(currentDir)) != NULL)
     {
-        struct dir_element *childDir = malloc(sizeof(struct dir_element));
+        struct dir_element *childDir = malloc(sizeof(struct dir_element *));
         if (childDir == NULL) {
             perror("cannot malloc child directory struct");
             return -1;
@@ -70,11 +73,13 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
         
         if(path == NULL || fullpath == NULL) {
                perror("path");
+               free(childDir);
                return -1;
         }
         if (stat(fullpath, &buf) == -1) {
                perror("stat");
                break;
+               free(childDir);
                return -1;
         }
 
@@ -93,11 +98,14 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
             DIR *dir = opendir(fullpath);
             if (dir == NULL) {
                 fprintf(stderr, "Unable to open directory: [%s]\n", fullpath);
+                free(childDir);
                 return -1;
             }
             int res = traverse(list, dir, path, fullpath);
+            
             if (res == -1) {
                 perror("child traversal error");
+                free(childDir);
                 continue;
             }
         }
@@ -128,6 +136,36 @@ int compareSize(const void *o1, const void *o2) {
     }
 }
 
+unsigned short calColumn(void) {
+    unsigned short cols = 80;
+    struct winsize win_sz;
+    if (ioctl(fileno(stdout), TIOCGWINSZ, &win_sz) != -1) {
+        cols = win_sz.ws_col;
+    }
+    LOG("Display columns: %d\n", cols);
+    return cols;
+}
+
+ssize_t convert_size( char *buf, unsigned int max, off_t sz) {
+    const char * units[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB"};
+    size_t len = sizeof(units)/sizeof(char *);
+    size_t unitIdx = 0;
+    double size = (double) sz;
+    while (size > 1024 && unitIdx < len) {
+        size /= 1024;
+        unitIdx++;
+    }
+    if (unitIdx == len) {
+        perror("file too large");
+        return 1;
+    } 
+    ssize_t res = snprintf(buf, max + 1, "    %.1f %s", size, units[unitIdx]);
+    if (res == -1) {
+        perror("unable to convert size");
+        return -1;
+    }
+    return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -214,8 +252,14 @@ int main(int argc, char *argv[])
         return -1;
     }
     
-    // TODO: traverse the directory and store entries in the list
-    ssize_t traverseRes = traverse(dirList, dir, &options.directory, fullpath);
+    char display_path[PATH_MAX];
+    if (options.directory[0] != '.') {
+        strcpy(display_path, "./");
+        strcat(display_path, options.directory);
+    } else {
+        strcpy(display_path, options.directory);
+    }
+    ssize_t traverseRes = traverse(dirList, dir, display_path, fullpath);
 
     if (traverseRes != 0) {
         perror("traversal failed");
@@ -231,18 +275,46 @@ int main(int argc, char *argv[])
 
     // TODO: print formatted list
     LOGP("checking the list \n");
-    LOG("List size is: %d\n", elist_size(dirList));
-    for (int idx = 0; idx < elist_size(dirList); idx++) {
+    LOG("List size is: %zu\n", elist_size(dirList));
+
+    int max = elist_size(dirList);
+    if (options.limit != 0) { 
+        max = max > options.limit ? options.limit : max; 
+    } 
+
+    unsigned short timeCols = 15;
+    unsigned short sizeCols = 14;
+    // minus one for holding \0
+    unsigned short totalCols = calColumn();
+    unsigned short nameCols = totalCols - timeCols - sizeCols - 1;
+    // LOG("name col: %d\n", nameCols);
+
+    for (int idx = 0; idx < max; idx++) {
         struct dir_element *elem = elist_get(dirList, idx);
-        char time_buff[16];
+        char name_buff[nameCols];
+        char time_buff[timeCols + 1];
+        char size_buff[sizeCols + 1];
+        char elem_buff[totalCols];
         time_t rawtm = elem->time;
-        LOG("raw: %d\n", rawtm);
 
         struct tm *ltime = localtime(&rawtm);
-        strftime(time_buff, 16, "    %b %d %Y", ltime);
-        LOG("%s\n", elem->fullpath);
-        LOG("last acc: %s\n", time_buff);
-        LOG("sz: %d\n", elem->size);
+
+        strftime(time_buff, timeCols + 1, "    %b %d %Y", ltime);
+        if (convert_size(size_buff, sizeCols + 1, elem->size) != 0) {
+            strcpy(size_buff, "    EXCEED");
+        }
+        
+        if (strlen(elem->path) + 1 > nameCols) {
+            int startIdx = strlen(elem->path) + 1 - nameCols - 3;
+            char tmp[PATH_MAX];
+            strcpy(tmp, "...");
+            strcat(tmp, elem->path+startIdx);
+            strcpy(elem->path, tmp);
+        }
+        snprintf(name_buff, nameCols, "%s", elem->path);
+
+        snprintf(elem_buff,totalCols, "%s%s%s", name_buff,size_buff, time_buff);
+        printf("%*s\n",totalCols, elem_buff);
     }
 
     elist_destroy(dirList);

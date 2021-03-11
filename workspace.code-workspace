@@ -11,7 +11,8 @@
 		"files.associations": {
 			"stdlib.h": "c",
 			"string.h": "c",
-			"vector": "c"
+			"vector": "c",
+			"logger.h": "c"
 		}
 	}
 }
