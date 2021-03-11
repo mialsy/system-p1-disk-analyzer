@@ -32,7 +32,10 @@ The way that elastic array works in terms of adding and resizing is shown in the
 
 Except adding operations, other opeartions on the elist pretty much mirrors what is in a normal array. Note that reset capacity is also allowed in this implementation, which will realloc space and may truncate the array if capacity is set to be smaller than the original size. 
 
-On the ohter hand, we can consider using a linkedlist structre, which also support appending and deleting element and has a flexible size. But consider the linkedlist has larger overhead (extra space to store next pointer) and worse locality, while not providing additonal speed advantage, it would not an optimal option. 
+
+### Other options of data structure for da rather than elist? 
+
+As mentioned above, we consider using elist as we want to be able to dynamically adjust the size of the list. For this purpose, we can consider using a linkedlist structre, which also supports appending and deleting element and has a flexible size. But consider the linkedlist has larger overhead (extra space to store next pointer) and worse locality, while not providing additonal speed advantage, it would not an optimal option. 
 
 Another possible way to implent this is with trees, however consider we do not need the indexing for disk analyzation it would be overkilling for our problem.
 
