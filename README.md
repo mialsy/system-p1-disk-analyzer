@@ -10,7 +10,7 @@
 
 ### What is da? 
 
-### Program options
+## Program options
 
 Command line options can provided to da to personalized the display. Options are listed as below:
 
@@ -29,7 +29,7 @@ Options:
 ```
 The display can be sorted by last access time (decending) or by size (ascending), by default, the displayed list is sorted by size. A optional limit can be provided to only list N files, the default is unlimited. 
 
-### Included files
+## Included files
 
 Here is a list of files that is included:
 
@@ -65,7 +65,7 @@ For runing the da util, runs:
 ```
 If the path is not passed in, a defaullt . (current directory) would be used for da util.
 
-### Program output
+## Program output
 
 ```console
 [miasly@dirtmouth P1-mialsy]$ ./da /etc/systemd
@@ -106,7 +106,7 @@ da.c:157:calColumn(): Display columns: 89
 ```
 
 
-### Testing
+## Testing
 
 For running the test cases, use ```make test```. For updating test cases, runs ```make testupdate```. 
 
