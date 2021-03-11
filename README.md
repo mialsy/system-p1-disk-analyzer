@@ -25,7 +25,7 @@ For example of the da domentrastion, please refer to the section [**Program outp
 
 An elastic array is a resizable array like ArrayList data structure in Java. The downside of the original array type in C is that it cannot be resized, which would be a big problem considering that we would not be able to tell how many files exists in the directory ahead of time. 
 
-The way thatt elastic array works is shown in the following diagram:
+The way that elastic array works is shown in the following diagram:
 
 
 On the ohter hand, we can consider using a linkedlist structre, which also support appending and deleting element and has a flexible size. But consider the linkedlist has larger overhead (extra space to store next pointer) and worse locality, while not providing additonal speed advantage, it would not an optimal option. 
