@@ -30,7 +30,7 @@ The way that elastic array works in terms of adding and resizing is shown in the
 
 <img src="https://github.com/usf-cs521-sp21/P1-mialsy/blob/main/res/Presentation2.gif" alt="demo of the elist adding operation" width="900">
 
-Except adding operations, other opeartions on the elist pretty much mirrors what is in a normal array. Note that reset capacity is also allowed in this implementation, which will realloc space and may truncate the array if capacity is set to be smaller than the original size. 
+Except adding operations, other opeartions on the elist pretty much mirror what is in a normal array. Note that reset capacity is also allowed in this implementation, which will realloc space and may truncate the array if capacity is set to be smaller than the original size. 
 
 
 ### Other options of data structure for da rather than elist? 
