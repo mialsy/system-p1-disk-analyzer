@@ -1,7 +1,8 @@
 # Project 1: ELastic Array & Disk Analyzer 
 
-**Author**: Chuxi Wang
+**Author**: [Chuxi Wang](https://github.com/mialsy "click here to see my awesome profile (not really awesome)") 
 
+**Summmary**: This is the project 1 for CS 521 System Programming. In this project, I implemented an elasic array and a command line utility - ```da```, which helps the user track of the disk space used by each files under the input directory. 
 
 ## About the project
 
