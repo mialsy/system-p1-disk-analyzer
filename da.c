@@ -16,6 +16,10 @@
 #include "elist.h"
 #include "logger.h"
 
+#define TIME_COLS 15
+#define SIZE_COLS 14
+#define TRIAL_SPACE_COLS 13
+
 /* Forward declarations: */
 void print_usage(char *argv[]);
 
@@ -33,7 +37,15 @@ void print_usage(char *argv[]) {
     "    * -s              Sort the files by size (default, ascending)\n\n"
     );
 }
-
+/**
+ * Adds a new element to the list by copying its in-memory contents into the
+ * list's element storage.
+ *
+ * @param list The list to copy the element into
+ * @param element The element to copy
+ *
+ * @return Index of the element, or -1 on failure
+ */
 struct dir_element
 {
     char path[PATH_MAX + 1];
@@ -263,7 +275,6 @@ int main(int argc, char *argv[])
         elist_sort(dirList, compareSize);
     }
 
-    // TODO: print formatted list
     LOGP("checking the list \n");
     LOG("List size is: %zu\n", elist_size(dirList));
 
@@ -272,26 +283,24 @@ int main(int argc, char *argv[])
         max = max > options.limit ? options.limit : max; 
     } 
 
-    unsigned short timeCols = 15;
-    unsigned short sizeCols = 14;
-    // minus one for holding \0
     unsigned short totalCols = calColumn();
-    unsigned short nameCols = totalCols - timeCols - sizeCols - 2 - 13;
+    // -2 for holding \n and \0
+    unsigned short nameCols = totalCols - TIME_COLS - SIZE_COLS - 2 - TRIAL_SPACE_COLS;
     LOG("total col: %d\n", totalCols);
 
     for (int idx = 0; idx < max; idx++) {
         struct dir_element *elem = elist_get(dirList, idx);
         char name_buff[nameCols];
-        char time_buff[timeCols + 1];
-        char size_buff[sizeCols + 1];
+        char time_buff[TIME_COLS + 1];
+        char size_buff[SIZE_COLS + 1];
         char elem_buff[totalCols];
         time_t rawtm = elem->time;
 
         struct tm *ltime = localtime(&rawtm);
 
-        strftime(time_buff, timeCols + 1, "    %b %d %Y", ltime);
+        strftime(time_buff, TIME_COLS + 1, "    %b %d %Y", ltime);
 
-        if (convert_size(size_buff, sizeCols + 1, elem->size) != 0) {
+        if (convert_size(size_buff, SIZE_COLS + 1, elem->size) != 0) {
             strcpy(size_buff, "    EXCEED");
         }
         
@@ -303,8 +312,7 @@ int main(int argc, char *argv[])
             strcpy(elem->path, tmp);
         }
         snprintf(name_buff, nameCols, "%s", elem->path);
-
-        snprintf(elem_buff,totalCols, "%*s%*s%*s%*s", nameCols, name_buff,sizeCols, size_buff, timeCols, time_buff, 13,"");
+        snprintf(elem_buff,totalCols, "%*s%*s%*s%*s", nameCols, name_buff,SIZE_COLS, size_buff, TIME_COLS, time_buff, TRIAL_SPACE_COLS,"");
         printf("%s\n", elem_buff);
     }
 
