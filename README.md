@@ -31,6 +31,11 @@ The display can be sorted by last access time (decending) or by size (ascending)
 
 ### Included files
 
+Here is a list of files that is included:
+
+- Makefile: included to compile and run the programs
+- 
+
 ### Program output
 
 ```console

@@ -13,6 +13,7 @@
 #include <termios.h>
 #include <time.h>
 
+#include "util.h"
 #include "elist.h"
 #include "logger.h"
 
@@ -158,35 +159,6 @@ unsigned short calColumn(void) {
     return cols;
 }
 
-/**
- * Helper method to convert size into human readable size string
- *
- * @param buf The string to store the human readable size
- * @param max The max length of the buf string
- * @param sz The size need to be converted
- * @return zero on success, non-zero on failure
- */
-ssize_t convert_size( char *buf, unsigned int max, off_t sz) {
-    const char * units[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB"};
-    size_t len = sizeof(units)/sizeof(char *);
-    size_t unitIdx = 0;
-    double size = (double) sz;
-    while (size > 1024 && unitIdx < len) {
-        size /= 1024;
-        unitIdx++;
-    }
-    if (unitIdx == len) {
-        perror("file too large");
-        return 1;
-    } 
-    ssize_t res = snprintf(buf, max + 1, "    %.1f %s", size, units[unitIdx]);
-    if (res == -1) {
-        perror("unable to convert size");
-        return -1;
-    }
-    return 0;
-}
-
 int main(int argc, char *argv[])
 {
     /* Create a struct to hold program options and initialize it by declaring an
@@ -311,15 +283,10 @@ int main(int argc, char *argv[])
         char name_buff[nameCols + 1];
         char time_buff[TIME_COLS + 1];
         char size_buff[SIZE_COLS + 1];
-        time_t rawtm = elem->time;
+        
+        simple_time_format(time_buff, TIME_COLS + 1, elem->time);
 
-        struct tm *ltime = localtime(&rawtm);
-
-        strftime(time_buff, TIME_COLS + 1, "    %b %d %Y", ltime);
-
-        if (convert_size(size_buff, SIZE_COLS + 1, elem->size) != 0) {
-            strcpy(size_buff, "    EXCEED");
-        }
+        human_readable_size(size_buff, SIZE_COLS + 1, (double)elem->size, 1);
         
         if (strlen(elem->path) > nameCols) {
             int startIdx = strlen(elem->path) - nameCols + 3;
