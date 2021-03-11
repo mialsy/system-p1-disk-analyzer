@@ -16,6 +16,10 @@
 #include "elist.h"
 #include "logger.h"
 
+#define TIME_COLS 15
+#define SIZE_COLS 14
+#define TRIAL_SPACE_COLS 13
+
 /* Forward declarations: */
 void print_usage(char *argv[]);
 
@@ -34,14 +38,27 @@ void print_usage(char *argv[]) {
     );
 }
 
+
+/** @struct dir_element
+ *  @brief This structure is used to store the temperary information of file and dirctory for traverse and print out the file and directoy  
+ */
 struct dir_element
 {
-    char path[PATH_MAX + 1];
-    char fullpath[PATH_MAX + 1];
-    off_t size;
-    time_t time;
+    char path[PATH_MAX + 1];        /*!< Relative path to display to users */
+    char fullpath[PATH_MAX + 1];    /*!< Full path used to open direcotry and access stats */
+    off_t size;                     /*!< Size of the file or direcotry in bytes */
+    time_t time;                    /*!< Last access time of file or directory in msec */
 };
 
+/**
+ * Helper function that traverses the dictories recursively
+ *
+ * @param list The list to store files and directories
+ * @param currentDir the directory to be traversed at the current call stack level
+ * @param parentpath the relative path of the parent directory, used to construct the display name (dir_element.path)
+ * @param parentpath_full the full path of the parent directory, used to construct the fullpath
+ * @return zero on success, nonzero on failure
+ */
 int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parentpath_full) 
 {
     struct dirent * ptr;
@@ -94,18 +111,26 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
                 return -1;
             }
             int res = traverse(list, dir, path, fullpath);
+            closedir(dir);
             
             if (res == -1) {
                 perror("child traversal error");
                 continue;
             }
+        } else {
+            elist_add(list, &childDir);
         }
-        elist_add(list, &childDir);
     }
-    closedir(currentDir);
     return 0;
 }
 
+/**
+ * Comparator that compares the last access time of the dir_element
+ *
+ * @param o1 The dir_element ptr, pointing to one of the dir_element to be compared
+ * @param o2 The dir_element ptr, pointing to the other of the dir_element to be compared
+ * @return zero on same, negative on t1 < t2, positive on t1 > t2 
+ */
 int compareTime(const void *o1, const void *o2) {
     time_t t1 = ((struct dir_element *)o1)->time;
     time_t t2 = ((struct dir_element *)o2)->time;
@@ -116,6 +141,13 @@ int compareTime(const void *o1, const void *o2) {
     }
 }
 
+/**
+ * Comparator that compares the size of the dir_element
+ *
+ * @param o1 The dir_element ptr, pointing to one of the dir_element to be compared
+ * @param o2 The dir_element ptr, pointing to the other of the dir_element to be compared
+ * @return zero on same, negative on s1 > t2, positive on s1 < s2 
+ */
 int compareSize(const void *o1, const void *o2) {
     off_t s1 = ((struct dir_element *)o1)->size;
     off_t s2 = ((struct dir_element *)o2)->size;
@@ -126,6 +158,11 @@ int compareSize(const void *o1, const void *o2) {
     }
 }
 
+/**
+ * Compute the size of the window
+ * 
+ * @return the window col number, if not able to get, return a default value of 80 
+ */
 unsigned short calColumn(void) {
     unsigned short cols = 80;
     struct winsize win_sz;
@@ -136,6 +173,14 @@ unsigned short calColumn(void) {
     return cols;
 }
 
+/**
+ * Helper method to convert size into human readable size string
+ *
+ * @param buf The string to store the human readable size
+ * @param max The max length of the buf string
+ * @param sz The size need to be converted
+ * @return zero on success, non-zero on failure
+ */
 ssize_t convert_size( char *buf, unsigned int max, off_t sz) {
     const char * units[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB"};
     size_t len = sizeof(units)/sizeof(char *);
@@ -227,7 +272,6 @@ int main(int argc, char *argv[])
     realpath(options.directory, fullpath);
     LOG("Fullpath of dir: [%s]\n", fullpath);
 
-
     DIR *dir = opendir(options.directory);
     if (dir == NULL) {
         fprintf(stderr, "Unable to open directory: [%s]\n", options.directory);
@@ -249,7 +293,9 @@ int main(int argc, char *argv[])
     } else {
         strcpy(display_path, options.directory);
     }
+    // traverse
     ssize_t traverseRes = traverse(dirList, dir, display_path, fullpath);
+    closedir(dir);
 
     if (traverseRes != 0) {
         perror("traversal failed");
@@ -263,7 +309,6 @@ int main(int argc, char *argv[])
         elist_sort(dirList, compareSize);
     }
 
-    // TODO: print formatted list
     LOGP("checking the list \n");
     LOG("List size is: %zu\n", elist_size(dirList));
 
@@ -272,40 +317,38 @@ int main(int argc, char *argv[])
         max = max > options.limit ? options.limit : max; 
     } 
 
-    unsigned short timeCols = 15;
-    unsigned short sizeCols = 14;
-    // minus one for holding \0
     unsigned short totalCols = calColumn();
-    unsigned short nameCols = totalCols - timeCols - sizeCols - 2 - 13;
+    // -2 for holding \n and \0
+    unsigned short nameCols = totalCols - TIME_COLS - SIZE_COLS;
     LOG("total col: %d\n", totalCols);
 
     for (int idx = 0; idx < max; idx++) {
         struct dir_element *elem = elist_get(dirList, idx);
-        char name_buff[nameCols];
-        char time_buff[timeCols + 1];
-        char size_buff[sizeCols + 1];
-        char elem_buff[totalCols];
+        char name_buff[nameCols + 1];
+        char time_buff[TIME_COLS + 1];
+        char size_buff[SIZE_COLS + 1];
         time_t rawtm = elem->time;
 
         struct tm *ltime = localtime(&rawtm);
 
-        strftime(time_buff, timeCols + 1, "    %b %d %Y", ltime);
+        strftime(time_buff, TIME_COLS + 1, "    %b %d %Y", ltime);
 
-        if (convert_size(size_buff, sizeCols + 1, elem->size) != 0) {
+        if (convert_size(size_buff, SIZE_COLS + 1, elem->size) != 0) {
             strcpy(size_buff, "    EXCEED");
         }
         
-        if (strlen(elem->path) + 1 > nameCols) {
-            int startIdx = strlen(elem->path) - nameCols - 3;
-            char tmp[PATH_MAX];
+        if (strlen(elem->path) > nameCols) {
+            int startIdx = strlen(elem->path) - nameCols + 3;
+            char tmp[nameCols + 1];
             strcpy(tmp, "...");
             strcat(tmp, elem->path+startIdx);
             strcpy(elem->path, tmp);
         }
-        snprintf(name_buff, nameCols, "%s", elem->path);
+        snprintf(name_buff, nameCols + 1, "%s", elem->path);
+        LOG("fullpath: %s\n", elem->fullpath);
+        LOG("path: %s\n", elem->path);
 
-        snprintf(elem_buff,totalCols, "%*s%*s%*s%*s", nameCols, name_buff,sizeCols, size_buff, timeCols, time_buff, 13,"");
-        printf("%s\n", elem_buff);
+        printf("%*s%*s%*s\n", nameCols, name_buff, SIZE_COLS, size_buff, TIME_COLS, time_buff);
     }
 
     elist_destroy(dirList);
