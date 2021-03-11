@@ -98,12 +98,6 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
         strcpy(childDir.fullpath, fullpath);
         strcpy(childDir.path, path);
 
-        // log info
-        // LOG("file path is %s \n", childDir->fullpath);
-        // LOG("file size is %d bytes\n", childDir->size);
-        // LOG("file mode is %i \n", S_ISDIR(buf.st_mode));
-        // LOG("file time is %d\n", childDir->time);
-
         if (S_ISDIR(buf.st_mode) && strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
             DIR *dir = opendir(fullpath);
             if (dir == NULL) {
@@ -345,8 +339,6 @@ int main(int argc, char *argv[])
             strcpy(elem->path, tmp);
         }
         snprintf(name_buff, nameCols + 1, "%s", elem->path);
-        LOG("fullpath: %s\n", elem->fullpath);
-        LOG("path: %s\n", elem->path);
 
         printf("%*s%*s%*s\n", nameCols, name_buff, SIZE_COLS, size_buff, TIME_COLS, time_buff);
     }
