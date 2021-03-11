@@ -4,7 +4,7 @@
 
 **Summmary**: This is the project 1 for CS 521 System Programming. In this project, I implemented an elasic array and a command line utility - ```da```, which helps the user track of the disk space used by each files under the input directory. 
 
-**update feture**: a new feature to print sub-directory along with files are updated on Mar 11, please check [this branch](https://github.com/usf-cs521-sp21/P1-mialsy/tree/directtory-traverse-feature) for this feature. 
+**Updated new feature**: a new feature to print sub-directory along with files are updated on Mar 11, please check [this branch](https://github.com/usf-cs521-sp21/P1-mialsy/tree/directtory-traverse-feature) for this feature. 
 
 ## About the project
 
@@ -159,6 +159,4 @@ For more detailed testing, please refer to below:
     ```
 
 - **Note**: before run the test case, make sure you are in the correct directory with the makefile.
-
-## Additonal: print subdirectory
 
