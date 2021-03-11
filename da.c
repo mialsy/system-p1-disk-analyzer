@@ -56,15 +56,16 @@ struct dir_element
  * @param currentDir the directory to be traversed at the current call stack level
  * @param parentpath the relative path of the parent directory, used to construct the display name (dir_element.path)
  * @param parentpath_full the full path of the parent directory, used to construct the fullpath
- * @return zero on success, nonzero on failure
+ * @return size of the direcoty
  */
-int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parentpath_full) 
+off_t traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parentpath_full) 
 {
     struct dirent * ptr;
     struct stat buf;
     char path[PATH_MAX + 1];
     char fullpath[PATH_MAX + 1];
-    
+    off_t totalByte;
+
     while((ptr = readdir(currentDir)) != NULL)
     {
 
@@ -101,13 +102,13 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
                 fprintf(stderr, "Unable to open directory: [%s]\n", fullpath);
                 continue;
             }
-            traverse(list, dir, path, fullpath);
+            childDir.size += traverse(list, dir, path, fullpath);
             closedir(dir);
-        } else {
-            elist_add(list, &childDir);
-        }
+        } 
+        totalByte += childDir.size;
+        elist_add(list, &childDir);
     }
-    return elist_size(list) == 0 ? -1 : 0;
+    return totalByte;
 }
 
 /**
@@ -254,7 +255,7 @@ int main(int argc, char *argv[])
     ssize_t traverseRes = traverse(dirList, dir, display_path, fullpath);
     closedir(dir);
 
-    if (traverseRes != 0) {
+    if (traverseRes == 0) {
         perror("traversal failed");
         elist_destroy(dirList);
         return -1;
