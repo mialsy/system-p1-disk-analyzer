@@ -51,11 +51,6 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
     
     while((ptr = readdir(currentDir)) != NULL)
     {
-        struct dir_element *childDir = malloc(sizeof(struct dir_element));
-        if (childDir == NULL) {
-            perror("cannot malloc child directory struct");
-            return -1;
-        }
 
         // LOG("Checking dir: %s\n", ptr->d_name);
         if (strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
@@ -73,20 +68,18 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
         
         if(path == NULL || fullpath == NULL) {
                perror("path");
-               free(childDir);
                return -1;
         }
         if (stat(fullpath, &buf) == -1) {
                perror("stat");
                break;
-               free(childDir);
                return -1;
         }
 
-        strcpy(childDir->fullpath, fullpath);
-        strcpy(childDir->path, path);
-        childDir->size = buf.st_size;
-        childDir->time = buf.st_atim.tv_sec;
+        struct dir_element childDir = {"","", buf.st_size, buf.st_atim.tv_sec};
+
+        strcpy(childDir.fullpath, fullpath);
+        strcpy(childDir.path, path);
 
         // log info
         // LOG("file path is %s \n", childDir->fullpath);
@@ -98,19 +91,16 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
             DIR *dir = opendir(fullpath);
             if (dir == NULL) {
                 fprintf(stderr, "Unable to open directory: [%s]\n", fullpath);
-                free(childDir);
                 return -1;
             }
             int res = traverse(list, dir, path, fullpath);
             
             if (res == -1) {
                 perror("child traversal error");
-                free(childDir);
                 continue;
             }
         }
-        elist_add(list, childDir);
-        free(childDir);
+        elist_add(list, &childDir);
     }
     closedir(currentDir);
     return 0;
@@ -122,7 +112,7 @@ int compareTime(const void *o1, const void *o2) {
     if (t1 == t2) {
         return 0;
     } else {
-        return t1 < t2 ? 1: -1;
+        return t1 < t2 ? -1: 1;
     }
 }
 
@@ -132,7 +122,7 @@ int compareSize(const void *o1, const void *o2) {
     if (s1 == s2) {
         return 0;
     } else {
-        return s1 < s2 ? -1 : 1;
+        return s1 < s2 ? 1 : -1;
     }
 }
 
@@ -286,8 +276,8 @@ int main(int argc, char *argv[])
     unsigned short sizeCols = 14;
     // minus one for holding \0
     unsigned short totalCols = calColumn();
-    unsigned short nameCols = totalCols - timeCols - sizeCols - 1;
-    // LOG("name col: %d\n", nameCols);
+    unsigned short nameCols = totalCols - timeCols - sizeCols - 2 - 13;
+    LOG("total col: %d\n", totalCols);
 
     for (int idx = 0; idx < max; idx++) {
         struct dir_element *elem = elist_get(dirList, idx);
@@ -300,12 +290,13 @@ int main(int argc, char *argv[])
         struct tm *ltime = localtime(&rawtm);
 
         strftime(time_buff, timeCols + 1, "    %b %d %Y", ltime);
+
         if (convert_size(size_buff, sizeCols + 1, elem->size) != 0) {
             strcpy(size_buff, "    EXCEED");
         }
         
         if (strlen(elem->path) + 1 > nameCols) {
-            int startIdx = strlen(elem->path) + 1 - nameCols - 3;
+            int startIdx = strlen(elem->path) - nameCols - 3;
             char tmp[PATH_MAX];
             strcpy(tmp, "...");
             strcat(tmp, elem->path+startIdx);
@@ -313,8 +304,8 @@ int main(int argc, char *argv[])
         }
         snprintf(name_buff, nameCols, "%s", elem->path);
 
-        snprintf(elem_buff,totalCols, "%s%s%s", name_buff,size_buff, time_buff);
-        printf("%*s\n",totalCols, elem_buff);
+        snprintf(elem_buff,totalCols, "%*s%*s%*s%*s", nameCols, name_buff,sizeCols, size_buff, timeCols, time_buff, 13,"");
+        printf("%s\n", elem_buff);
     }
 
     elist_destroy(dirList);
