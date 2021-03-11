@@ -33,12 +33,37 @@ The display can be sorted by last access time (decending) or by size (ascending)
 
 Here is a list of files that is included:
 
-- Makefile: included to compile and run the programs
-- da.c: the program driver
-- elist.c: 
-- util.c:
+- **Makefile**: Included to compile and run the programs
+- **da.c**: The program driver. It includes:
+    - ```main(int, char *[])``` main function that takes input from command line arguments, parses command line argument, travese and sort the dirtory element list, and output to terminal.
+    - ```struct dir_element``` which holds tempary information of the files under the directory to be used later for sorting and output information.
+    - helper function ```traverse(elist *, DIR *, char *, char *))``` which would be called recursively to traverse the current directory and subdirectories.
+    - comparators ```compareTime(const void *, const void *)``` and ```compareSize(const void *, const void *)```that are used for sorting the elist.
+    - helper function ```calColumn(void)``` that is used to calculate the terminal column for better visualization.
+- **elist.c**: This include a elastic list data structure ```elist``` and functions that supports the ```elist``` operations.       
+    - ```struct elist``` which stores the element and metadata of the elist.
+    - elist opreation functions including:
+        - creating, sorting, and destorying the elist;
+        - clearing out the memory on elist;
+        - getting and resetting the elist capacity;
+        - getting the elist size;
+        - adding, getting, setting, and searching one element in the elist.
+    - helper method ```idx_is_valid(struct elist *, size_t)``` to support checking if a given index is valid.
+- **util.c**: This includes utilly methods for converting raw size in byte and time in millosecond to human readble format. 
+- **logger.h**: Included for log output. 
 
 Header filess are also included for the c files.
+
+For compiling the program, runs:
+```console
+[miasly@dirtmouth P1-mialsy]$ make
+```
+
+For runing the da util, runs:
+```console
+[miasly@dirtmouth P1-mialsy]$ ./da [directory_path]
+```
+If the path is not passed in, a defaullt . (current directory) would be used for da util.
 
 ### Program output
 
