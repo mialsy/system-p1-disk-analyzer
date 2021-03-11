@@ -1,6 +1,6 @@
 # Project 1: ELastic Array & Disk Analyzer 
 
-**Author**: [Chuxi Wang](https://github.com/mialsy "click here to see my awesome profile (not really awesome)") 
+**Author**: [Chuxi Wang](https://github.com/mialsy "click here to see my awesome profile, not really awesome but welcome to my space :)") 
 
 **Summmary**: This is the project 1 for CS 521 System Programming. In this project, I implemented an elasic array and a command line utility - ```da```, which helps the user track of the disk space used by each files under the input directory. 
 
@@ -11,6 +11,23 @@
 ### What is da? 
 
 ### Program options
+
+Command line options can provided to da to personalized the display. Options are listed as below:
+
+```console
+[miasly@dirtmouth P1-mialsy]$ ./da -h
+Disk Analyzer (da): analyzes disk space usage
+Usage: ./da [-ahs] [-l limit] [directory]
+
+If no directory is specified, the current working directory is used.
+
+Options:
+    * -a              Sort the files by time of last access (descending)
+    * -h              Display help/usage information
+    * -l limit        Limit the output to top N files (default=unlimited)
+    * -s              Sort the files by size (default, ascending)
+```
+The display can be sorted by last access time (decending) or by size (ascending), by default, the displayed list is sorted by size. A optional limit can be provided to only list N files, the default is unlimited. 
 
 ### Included files
 
