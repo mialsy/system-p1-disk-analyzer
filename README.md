@@ -34,7 +34,11 @@ The display can be sorted by last access time (decending) or by size (ascending)
 Here is a list of files that is included:
 
 - Makefile: included to compile and run the programs
-- 
+- da.c: the program driver
+- elist.c: 
+- util.c:
+
+Header filess are also included for the c files.
 
 ### Program output
 
