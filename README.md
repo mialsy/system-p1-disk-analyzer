@@ -16,12 +16,21 @@ This main purpose of command line util ```da``` built in this project is to anal
 
 The work flow of ```da``` is shown as below:
 
+
 For input options of the da, please refer to the section [**Program options**](https://github.com/usf-cs521-sp21/P1-mialsy/tree/main#program-options).
 
 For example of the da domentrastion, please refer to the section [**Program output**](https://github.com/usf-cs521-sp21/P1-mialsy/tree/main#program-output).
 
-### What is a elasic array and why do we use it?
+### What is a elastic array and why do we use it?
 
+An elastic array is a resizable array like ArrayList data structure in Java. The downside of the original array type in C is that it cannot be resized, which would be a big problem considering that we would not be able to tell how many files exists in the directory ahead of time. 
+
+The way thatt elastic array works is shown in the following diagram:
+
+
+On the ohter hand, we can consider using a linkedlist structre, which also support appending and deleting element and has a flexible size. But consider the linkedlist has larger overhead (extra space to store next pointer) and worse locality, while not providing additonal speed advantage, it would not an optimal option. 
+
+Another possible way to implent this is with trees, however consider we do not need the indexing for disk analyzation it would be overkilling for our problem.
 
 ## Program options
 
