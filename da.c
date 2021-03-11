@@ -18,7 +18,7 @@
 
 #define TIME_COLS 15
 #define SIZE_COLS 14
-#define DEFAULT_PATH_SZ 300
+#define DEFAULT_PATH_SZ 500
 
 /* Forward declarations: */
 void print_usage(char *argv[]);
