@@ -8,7 +8,7 @@ void human_readable_size(char *buf, size_t buf_sz, double size, unsigned int dec
     const char * units[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB"};
     size_t len = sizeof(units)/sizeof(char *);
     size_t unitIdx = 0;
-    while (size > 1024 && unitIdx < len) {
+    while (size >= 1024 && unitIdx < len) {
         size /= 1024;
         unitIdx++;
     }

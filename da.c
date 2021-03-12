@@ -19,7 +19,6 @@
 
 #define TIME_COLS 15
 #define SIZE_COLS 14
-#define DEFAULT_PATH_SZ 500
 
 /* Forward declarations: */
 void print_usage(char *argv[]);
@@ -43,7 +42,7 @@ void print_usage(char *argv[]) {
  */
 struct dir_element
 {
-    char path[DEFAULT_PATH_SZ];        /*!< Relative path to display to users */
+    char path[PATH_MAX];        /*!< Relative path to display to users */
     off_t size;                     /*!< Size of the file or direcotry in bytes */
     time_t time;                    /*!< Last access time of file or directory in msec */
 };
@@ -61,8 +60,8 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
 {
     struct dirent * ptr;
     struct stat buf;
-    char path[DEFAULT_PATH_SZ];
-    char fullpath[DEFAULT_PATH_SZ];
+    char path[PATH_MAX];
+    char fullpath[PATH_MAX];
      
     while((ptr = readdir(currentDir)) != NULL)
     {
