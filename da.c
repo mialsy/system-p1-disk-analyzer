@@ -44,7 +44,6 @@ void print_usage(char *argv[]) {
 struct dir_element
 {
     char path[DEFAULT_PATH_SZ];        /*!< Relative path to display to users */
-    char fullpath[DEFAULT_PATH_SZ];    /*!< Full path used to open direcotry and access stats */
     off_t size;                     /*!< Size of the file or direcotry in bytes */
     time_t time;                    /*!< Last access time of file or directory in msec */
 };
@@ -62,9 +61,9 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
 {
     struct dirent * ptr;
     struct stat buf;
-    char path[PATH_MAX + 1];
-    char fullpath[PATH_MAX + 1];
-    
+    char path[DEFAULT_PATH_SZ];
+    char fullpath[DEFAULT_PATH_SZ];
+     
     while((ptr = readdir(currentDir)) != NULL)
     {
 
@@ -90,9 +89,8 @@ int traverse(struct elist *list, DIR *currentDir, char *parentpath, char *parent
                continue;
         }
 
-        struct dir_element childDir = {"","", buf.st_size, buf.st_atim.tv_sec};
+        struct dir_element childDir = {"", buf.st_size, buf.st_atim.tv_sec};
 
-        strcpy(childDir.fullpath, fullpath);
         strcpy(childDir.path, path);
 
         if (S_ISDIR(buf.st_mode) && strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
