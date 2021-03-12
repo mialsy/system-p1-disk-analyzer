@@ -44,7 +44,6 @@ void print_usage(char *argv[]) {
 struct dir_element
 {
     char path[DEFAULT_PATH_SZ];        /*!< Relative path to display to users */
-    char fullpath[DEFAULT_PATH_SZ];    /*!< Full path used to open direcotry and access stats */
     off_t size;                     /*!< Size of the file or direcotry in bytes */
     time_t time;                    /*!< Last access time of file or directory in msec */
 };
@@ -62,8 +61,8 @@ off_t traverse(struct elist *list, DIR *currentDir, char *parentpath, char *pare
 {
     struct dirent * ptr;
     struct stat buf;
-    char path[PATH_MAX + 1];
-    char fullpath[PATH_MAX + 1];
+    char path[DEFAULT_PATH_SZ];
+    char fullpath[DEFAULT_PATH_SZ];
     off_t totalByte;
 
     while((ptr = readdir(currentDir)) != NULL)
@@ -91,9 +90,8 @@ off_t traverse(struct elist *list, DIR *currentDir, char *parentpath, char *pare
                continue;
         }
 
-        struct dir_element childDir = {"","", buf.st_size, buf.st_atim.tv_sec};
+        struct dir_element childDir = {"",buf.st_size, buf.st_atim.tv_sec};
 
-        strcpy(childDir.fullpath, fullpath);
         strcpy(childDir.path, path);
 
         if (S_ISDIR(buf.st_mode) && strcmp(ptr->d_name, ".") != 0 && strcmp(ptr->d_name, "..") != 0) {
@@ -226,7 +224,7 @@ int main(int argc, char *argv[])
             options.sort_by_time == true ? "time" : "size",
             options.limit);
     LOG("Directory to analyze: [%s]\n", options.directory);
-    char fullpath[PATH_MAX];
+    char fullpath[DEFAULT_PATH_SZ];
     realpath(options.directory, fullpath);
     LOG("Fullpath of dir: [%s]\n", fullpath);
 
@@ -244,7 +242,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     
-    char display_path[PATH_MAX];
+    char display_path[DEFAULT_PATH_SZ];
     if (options.directory[0] != '.' && options.directory[0] != '/') {
         strcpy(display_path, "./");
         strcat(display_path, options.directory);
@@ -259,7 +257,7 @@ int main(int argc, char *argv[])
 
     // traverse
     off_t traverseRes = traverse(dirList, dir, display_path, fullpath);
-    struct dir_element current_dir = {"","", traverseRes, buf.st_atim.tv_sec};
+    struct dir_element current_dir = {"",traverseRes, buf.st_atim.tv_sec};
     strcpy(current_dir.path, options.directory);
     closedir(dir);
 
